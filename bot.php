@@ -28,11 +28,6 @@ if (!isset($_SESSION['history']) || !is_array($_SESSION['history'])) {
     $_SESSION['history'] = [];
 }
 
-$first = reset($_SESSION['history']);
-if (is_array($first) && isset($first['parts'])) {
-    $_SESSION['history'] = [];
-}
-
 $_SESSION['history'][] = [
     'role' => 'user',
     'content' => $question,

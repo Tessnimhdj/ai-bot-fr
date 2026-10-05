@@ -5,7 +5,7 @@ const clearBtn = document.getElementById('clear-btn');
 const micBtn = document.getElementById('mic-btn');
 const counter = document.getElementById('msg-counter');
 
-const PLACEHOLDER = 'Écrivez votre question ici... 🌸';
+const PLACEHOLDER = 'Écrivez votre question ici';
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if (SpeechRecognition) {
@@ -19,7 +19,7 @@ if (SpeechRecognition) {
     function resetMic() {
         isListening = false;
         micBtn.classList.remove('listening');
-        micBtn.title = 'Parler à Tessnim';
+        micBtn.title = 'Parler';
         userInput.placeholder = PLACEHOLDER;
     }
 
@@ -35,7 +35,7 @@ if (SpeechRecognition) {
         isListening = true;
         micBtn.classList.add('listening');
         micBtn.title = 'Cliquez pour arrêter...';
-        userInput.placeholder = '🎤 Parlez maintenant...';
+        userInput.placeholder = 'Parlez maintenant';
     });
 
     recognition.addEventListener('result', function (event) {
@@ -48,9 +48,9 @@ if (SpeechRecognition) {
     recognition.addEventListener('error', function (event) {
         resetMic();
         if (event.error === 'not-allowed') {
-            addMsg('❌ Accès au microphone refusé — Autorisez le micro dans votre navigateur.', 'err');
+            addMsg('Accès au microphone refusé. Autorisez le micro dans votre navigateur.', 'err');
         } else if (event.error === 'no-speech') {
-            addMsg('⚠️ Aucune parole détectée — Réessayez.', 'err');
+            addMsg('Aucune parole détectée. Réessayez.', 'err');
         }
     });
 } else {
@@ -67,6 +67,14 @@ userInput.addEventListener('keydown', function (event) {
     }
 });
 
+function post(params) {
+    return fetch('bot.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(params),
+    });
+}
+
 async function sendMessage() {
     const question = userInput.value.trim();
     if (!question) return;
@@ -78,18 +86,14 @@ async function sendMessage() {
     const thinkingId = addThinking();
 
     try {
-        const response = await fetch('bot.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ question }),
-        });
+        const response = await post({ question });
         const data = await response.json();
 
         removeEl(thinkingId);
         setLoading(false);
 
         if (data.error) {
-            addMsg('❌ ' + data.error, 'err');
+            addMsg(data.error, 'err');
             return;
         }
 
@@ -100,7 +104,7 @@ async function sendMessage() {
     } catch (error) {
         removeEl(thinkingId);
         setLoading(false);
-        addMsg('❌ Connexion au serveur échouée — Vérifiez bot.php', 'err');
+        addMsg('Connexion au serveur échouée. Vérifiez bot.php', 'err');
         console.error(error);
     }
 }
@@ -109,13 +113,9 @@ function clearChat() {
     chatBox.innerHTML = '';
     counter.textContent = '';
 
-    fetch('bot.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ clear: '1' }),
-    });
+    post({ clear: '1' });
 
-    addMsg('Bonjour à nouveau ! 🌸 Comment puis-je vous aider ? 💕', 'bot');
+    addMsg('Bonjour. Comment puis-je vous aider ?', 'bot');
 }
 
 function addMsg(text, type) {
@@ -127,7 +127,7 @@ function addMsg(text, type) {
     message.id = id;
     message.className = 'msg ' + type;
     label.className = 'msg-label';
-    label.textContent = type === 'user' ? 'Vous 💬' : type === 'err' ? 'Erreur ⚠️' : 'Tessnim 🌸';
+    label.textContent = type === 'user' ? 'Vous' : type === 'err' ? 'Erreur' : 'Tasnim';
     content.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
 
     message.append(label, content);
@@ -144,7 +144,7 @@ function addThinking() {
     message.id = id;
     message.className = 'msg bot thinking';
     message.innerHTML =
-        '<span class="msg-label">Tessnim réfléchit 🌸</span>' +
+        '<span class="msg-label">Tasnim</span>' +
         '<div class="thinking-dots"><span></span><span></span><span></span></div>';
 
     chatBox.appendChild(message);
@@ -156,7 +156,7 @@ function addThinking() {
 function setLoading(active) {
     sendBtn.disabled = active;
     userInput.disabled = active;
-    sendBtn.textContent = active ? '...' : 'Envoyer ✦';
+    sendBtn.textContent = active ? '...' : 'Envoyer';
 }
 
 function removeEl(id) {
@@ -175,7 +175,7 @@ function escapeHtml(text) {
 
 window.addEventListener('load', function () {
     addMsg(
-        "Bonjour ! 🌸 Je suis Tessnim, votre assistante intelligente.\nPosez-moi n'importe quelle question, je suis là pour vous ! 💕",
+        'Bonjour. Je suis Tasnim. Posez votre question.',
         'bot'
     );
 });
